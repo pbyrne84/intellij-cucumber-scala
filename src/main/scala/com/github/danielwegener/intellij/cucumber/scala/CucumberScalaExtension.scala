@@ -1,22 +1,23 @@
 package com.github.danielwegener.intellij.cucumber.scala
 
-import java.util.{ Collections, Collection => JavaCollection, Set => JavaSet }
+import java.util.{Collections, Collection => JavaCollection, Set => JavaSet}
 
 import com.github.danielwegener.intellij.cucumber.scala.steps.ScalaStepDefinition
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.{ Module, ModuleUtilCore }
+import com.intellij.openapi.module.{Module, ModuleUtilCore}
 import com.intellij.openapi.project.Project
 import com.intellij.psi._
+import com.intellij.psi.impl.JavaPsiFacadeImpl
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.NotNull
-import org.jetbrains.plugins.cucumber.{ BDDFrameworkType, StepDefinitionCreator }
+import org.jetbrains.plugins.cucumber.{BDDFrameworkType, StepDefinitionCreator}
 import org.jetbrains.plugins.cucumber.psi.GherkinFile
-import org.jetbrains.plugins.cucumber.steps.{ AbstractCucumberExtension, AbstractStepDefinition }
+import org.jetbrains.plugins.cucumber.steps.{AbstractCucumberExtension, AbstractStepDefinition}
 import org.jetbrains.plugins.scala.ScalaFileType
 import org.jetbrains.plugins.scala.lang.psi
 import org.jetbrains.plugins.scala.lang.psi.api.ScalaFile
 import org.jetbrains.plugins.scala.lang.psi.api.expr.ScMethodCall
-import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScTrait, ScTypeDefinition, ScClass }
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ScClass, ScTrait, ScTypeDefinition}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters
@@ -62,8 +63,8 @@ class CucumberScalaExtension extends AbstractCucumberExtension {
     val project: Project = featureFile.getProject
 
     val stepDefs = for {
-      cucumberDslClass <- JavaPsiFacade.getInstance(project).findClasses(CUCUMBER_RUNTIME_SCALA_STEP_DEF_TRAIT, dependenciesScope)
-      scalaDslInheritingClass <- psi.stubs.util.ScalaStubsUtil.getClassInheritors(cucumberDslClass, dependenciesScope).collect { case sc: ScClass => sc; case sct: ScTrait => sct }
+      cucumberDslClass <- JavaPsiFacadeImpl.getInstance(project).findClasses(CUCUMBER_RUNTIME_SCALA_STEP_DEF_TRAIT, dependenciesScope)
+      scalaDslInheritingClass <- psi.stubs.util.ScalaInheritors.directInheritorCandidates(cucumberDslClass, dependenciesScope).collect { case sc: ScClass => sc; case sct: ScTrait => sct }
       glueCodeClass <- classAndItsInheritors(scalaDslInheritingClass, dependenciesScope)
       scConstructorBody <- glueCodeClass.extendsBlock.templateBody.toSeq
       outerMethodCall <- scConstructorBody.getChildren.collect { case mc: ScMethodCall => mc }
@@ -80,7 +81,7 @@ class CucumberScalaExtension extends AbstractCucumberExtension {
       queue match {
         case Nil => akku
         case a =>
-          val newChildren = psi.stubs.util.ScalaStubsUtil.getClassInheritors(a.head, scope)
+          val newChildren = psi.stubs.util.ScalaInheritors.directInheritorCandidates(a.head, scope)
             .collect { case sc: ScClass => sc; case sct: ScTrait => sct }
             .filterNot(akku.contains)
           rec(a.tail ::: newChildren.toList, akku + a.head)
@@ -99,8 +100,8 @@ class CucumberScalaExtension extends AbstractCucumberExtension {
       module <- maybeModule.toSeq
       searchScope = module.getModuleContentScope
       globalSearchScope = module.getModuleWithDependenciesAndLibrariesScope(true)
-      cucumberDslClass <- JavaPsiFacade.getInstance(project).findClasses(CUCUMBER_RUNTIME_SCALA_STEP_DEF_TRAIT, globalSearchScope).toSeq
-      scalaDslInheritingClass @ (some: ScClass) <- psi.stubs.util.ScalaStubsUtil.getClassInheritors(cucumberDslClass, searchScope)
+      cucumberDslClass <- JavaPsiFacadeImpl.getInstance(project).findClasses(CUCUMBER_RUNTIME_SCALA_STEP_DEF_TRAIT, globalSearchScope).toSeq
+      scalaDslInheritingClass @ (some: ScClass) <- psi.stubs.util.ScalaInheritors.directInheritorCandidates(cucumberDslClass, searchScope)
       glueCodeClass <- classAndItsInheritors(scalaDslInheritingClass, searchScope)
       containingFile <- Try(glueCodeClass.getContainingFile).toOption
     } yield containingFile

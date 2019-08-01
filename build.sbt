@@ -3,13 +3,17 @@ import sbt.Keys._
 
 name :=  "Cucumber for Scala"
 normalizedName :=  "intellij-cucumber-scala"
-version := "2018.2.0"
+version := "2019.2"
 scalaVersion :=  "2.12.4"
+//https://plugins.jetbrains.com/plugin/7212-cucumber-for-java/update/65391
+//https://plugins.jetbrains.com/plugin/1347-scala/update/66462
 
-lazy val `scala-plugin` = IdeaPlugin.Zip("scala-plugin", url("https://plugins.jetbrains.com/plugin/download?updateId=45268"))
-lazy val `cucumber-java` = IdeaPlugin.Zip("cucumber-java", url("https://plugins.jetbrains.com/plugin/download?updateId=43535"))
-lazy val gherkin = IdeaPlugin.Zip("gherkin", url("https://plugins.jetbrains.com/plugin/download?updateId=43534"))
-lazy val ideaBuildNumber  = "182.3684.101"
+
+//https://plugins.jetbrains.com/plugin/9164-gherkin/update/65392
+lazy val `scala-plugin` = IdeaPlugin.Zip("scala-plugin", url("https://plugins.jetbrains.com/plugin/download?updateId=66462"))
+lazy val `cucumber-java` = IdeaPlugin.Zip("cucumber-java", url("https://plugins.jetbrains.com/plugin/download?updateId=65391"))
+lazy val gherkin = IdeaPlugin.Zip("gherkin", url("https://plugins.jetbrains.com/plugin/download?updateId=65392"))
+lazy val ideaBuildNumber  = "192.5728.98"
 
 lazy val `cucumber-scala` = project.in(file( "."))
   .enablePlugins(SbtIdeaPlugin)
@@ -50,3 +54,9 @@ lazy val `runner-cucumber-scala-idea`  = project.in(file(s"idea"))
       )
   )
 
+
+
+///Users/byrnep/Dev/personal/intellij-cucumber-scala/idea/192.5728.98/plugins/java/lib/java-impl.jar
+
+
+( unmanagedJars in Compile) += new File("/Users/byrnep/Dev/personal/intellij-cucumber-scala/idea/192.5728.98/plugins/java/lib/java-impl.jar")
