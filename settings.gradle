@@ -1,0 +1,5 @@
+pluginManagement {
+
+}
+rootProject.name = 'intellij-cucumber-scala'
+
